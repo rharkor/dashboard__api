@@ -1,0 +1,34 @@
+# Daigis Api
+@url = http://localhost:3001/
+
+// Change the auth token with the one you get from the login request
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQG1haWwuY29tIiwiaWF0IjoxNjc3NDI1MDMwLCJleHAiOjE2ODc3OTMwMzB9.AokUXeScJupGAZpGH-stOufPODVx_KJi8S4N7WFXt5g
+
+
+## Status
+### Test the status of the api
+GET {{ url }}
+
+## AUTH
+@authUrl = {{ url }}auth/
+### Get profile
+GET {{ authUrl }}profile
+Authorization: Bearer {{ authToken }}
+
+### Login
+POST {{ authUrl }}login
+Content-Type: application/json
+
+{
+  "email": "admin@mail.com",
+  "password": "admin"
+}
+
+### Register
+POST {{ authUrl }}register
+Content-Type: application/json
+
+{
+  "email": "admin@mail.com",
+  "password": "admin"
+}
