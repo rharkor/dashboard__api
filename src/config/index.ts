@@ -2,6 +2,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import appConfiguration from './app.configuration';
 import databaseConfiguration from './database.configuration';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 export default [
   ConfigModule.forRoot({
@@ -21,4 +23,15 @@ export default [
       autoLoadEntities: true,
     }),
   }),
+  ThrottlerModule.forRoot({
+    ttl: 60,
+    limit: 10,
+  }),
+  ScheduleModule.forRoot(),
 ];
+
+const configService = new ConfigService();
+export const BACKHEALTH_API_KEY =
+  configService.getOrThrow<string>('BACKHEALTH_API_KEY');
+export const ENVIRONMENT = configService.getOrThrow<string>('ENV');
+export const PROJECT_NAME = configService.getOrThrow<string>('PROJECT_NAME');

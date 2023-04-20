@@ -4,8 +4,10 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { AbstractHttpAdapter } from '@nestjs/core';
+import backhealth from 'src/utils/backhealth';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -33,7 +35,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
       responseBody.error = exception.response.message;
     }
 
-    console.error(exception);
+    Logger.error(exception);
+
+    // If the error is critical, emit event to notify the admin
+    if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.error(exception);
+      backhealth
+        .emit({
+          type: 'all exceptions error',
+          content: {
+            initial: exception,
+            string: exception.toString(),
+            message: exception.message,
+            stack: exception.stack,
+          },
+          severity: 'critical',
+        })
+        .then(() => {
+          Logger.log('Backhealth event emitted');
+        });
+    }
 
     this.httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
   }

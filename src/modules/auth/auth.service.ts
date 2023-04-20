@@ -11,7 +11,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(email);
+    const user = await this.usersService.findOne(email, true);
     if (user && (await bcryptCompare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   async login(user: { email: string; password: string }) {
-    const foundUser = await this.usersService.findOne(user.email);
+    const foundUser = await this.usersService.findOne(user.email, true);
     if (!foundUser) throw new Error('Invalid credentials');
     if (!(await bcryptCompare(user.password, foundUser.password))) {
       throw new Error('Invalid credentials');
@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   async register(user: { email: string; password: string }) {
-    const foundUser = await this.usersService.findOne(user.email);
+    const foundUser = await this.usersService.findOne(user.email, true);
     if (foundUser) throw new Error('User already exists');
     const hashedPassword = await hash(user.password, 10);
     user.password = hashedPassword;

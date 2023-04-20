@@ -1,9 +1,19 @@
-import { Controller, Get, UseGuards, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Post,
+  Body,
+  Request,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './meta/public.meta';
 import { AuthService } from './modules/auth/auth.service';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { LocalAuthGuard } from './modules/auth/local-auth.guard';
+import { RequestWithUser } from './types';
 
 @Controller()
 export class AppController {
@@ -22,6 +32,8 @@ export class AppController {
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
   async login(@Body() user: { email: string; password: string }) {
+    // Sleep for .5 seconds to avoid brute force attacks
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return this.authService.login(user);
   }
 
@@ -33,7 +45,7 @@ export class AppController {
 
   @UseGuards(JwtAuthGuard)
   @Get('auth/profile')
-  getProfile() {
-    return 'work!';
+  getProfile(@Request() req: RequestWithUser) {
+    return req.user;
   }
 }
