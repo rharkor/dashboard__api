@@ -32,6 +32,6 @@ export default [
 
 const configService = new ConfigService();
 export const BACKHEALTH_API_KEY =
-  configService.getOrThrow<string>('BACKHEALTH_API_KEY');
+  configService.get<string>('BACKHEALTH_API_KEY');
 export const ENVIRONMENT = configService.getOrThrow<string>('ENV');
 export const PROJECT_NAME = configService.getOrThrow<string>('PROJECT_NAME');
