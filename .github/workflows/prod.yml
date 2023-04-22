@@ -32,7 +32,7 @@ jobs:
           PASSWORD_ENCRYPTION_KEY: ${{ secrets.PASSWORD_ENCRYPTION_KEY }}
         run: |
           cp .env.example .env
-          echo DATABASE_NAME=backhealth >> .env
+          echo DATABASE_NAME=dashboard >> .env
           echo DATABASE_PASS=${{ secrets.DB_PASS }} >> .env
           echo DATABASE_USER=basic >> .env
           echo DATABASE_PORT=10013 >> .env
