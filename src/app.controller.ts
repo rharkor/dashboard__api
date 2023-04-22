@@ -5,8 +5,6 @@ import {
   Post,
   Body,
   Request,
-  UnauthorizedException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './meta/public.meta';
@@ -14,6 +12,7 @@ import { AuthService } from './modules/auth/auth.service';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { LocalAuthGuard } from './modules/auth/local-auth.guard';
 import { RequestWithUser } from './types';
+import * as fs from 'fs';
 
 @Controller()
 export class AppController {
@@ -47,5 +46,11 @@ export class AppController {
   @Get(['auth/profile', 'auth/me'])
   getProfile(@Request() req: RequestWithUser) {
     return req.user;
+  }
+
+  @Public()
+  @Post('no-op')
+  noOp() {
+    return 'ok';
   }
 }

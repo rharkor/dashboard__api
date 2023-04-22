@@ -12,6 +12,8 @@ import {
 } from '@backhealth/nest-sdk';
 import { CronModule } from './modules/cron/cron.module';
 import { BACKHEALTH_API_KEY, ENVIRONMENT, PROJECT_NAME } from './config';
+import { ItemModule } from './modules/items/item.module';
+import { FileModule } from './modules/files/file.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { BACKHEALTH_API_KEY, ENVIRONMENT, PROJECT_NAME } from './config';
     }),
     AuthModule,
     CronModule,
+    ItemModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [

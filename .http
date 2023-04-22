@@ -2,7 +2,7 @@
 @url = http://localhost:3000/
 
 // Change the auth token with the one you get from the login request
-@authToken = 
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTY4MjA2ODA3NCwiZXhwIjoxNjkyNDM2MDc0fQ.x2aNjiQpdsqAs1lPshotmny-7IReIzvxdCOKNybXOdc
 
 ## Status
 ### Test the status of the api
@@ -31,3 +31,18 @@ Content-Type: application/json
   "email": "admin@admin.com",
   "password": "admin"
 }
+
+### Items
+@itemsUrl = {{ url }}items/
+
+### Get all items
+GET {{ itemsUrl }}
+Authorization: Bearer {{ authToken }}
+
+### Get item by id
+GET {{itemsUrl}}11
+Authorization: Bearer {{ authToken }}
+
+### Delete item by id
+DELETE {{itemsUrl}}12
+Authorization: Bearer {{ authToken }}

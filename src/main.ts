@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './middlewares/all-exceptions.middleware';
 import * as swStats from 'swagger-stats';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthService } from './modules/auth/auth.service';
+import * as serveStatic from 'serve-static';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

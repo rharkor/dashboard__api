@@ -1,0 +1,49 @@
+name: rec workflow
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: ['rec']
+  pull_request:
+    branches: ['rec']
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  run:
+    # The type of runner that the job will run on
+    runs-on:
+      - self-hosted
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run the rec docker-compose
+        env:
+          DB_PASS: ${{ secrets.DB_PASS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          USER_EMAIL: ${{ secrets.USER_EMAIL }}
+          USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
+          PERFORMANCE_MONITOR_API_KEY: ${{ secrets.PERFORMANCE_MONITOR_API_KEY }}
+          PASSWORD_ENCRYPTION_KEY: ${{ secrets.PASSWORD_ENCRYPTION_KEY }}
+        run: |
+          cp .env.example .env
+          echo DATABASE_NAME=backhealth_rec >> .env
+          echo DATABASE_PASS=${{ secrets.DB_PASS }} >> .env
+          echo DATABASE_USER=basic >> .env
+          echo DATABASE_PORT=10013 >> .env
+          echo DATABASE_HOST=host.docker.internal >> .env
+          echo DATABASE_KIND=postgres >> .env
+          echo ENV=rec >> .env
+          echo PORT=3000 >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          echo USER_EMAIL=${{ secrets.USER_EMAIL }} >> .env
+          echo USER_PASSWORD=${{ secrets.USER_PASSWORD }} >> .env
+          echo PERFORMANCE_MONITOR_API_KEY=${{ secrets.PERFORMANCE_MONITOR_API_KEY }} >> .env
+          echo PASSWORD_ENCRYPTION_KEY=${{ secrets.PASSWORD_ENCRYPTION_KEY }} >> .env
+          echo PROJECT_NAME=dashboard >> .env
+          docker-compose -f docker-compose.rec.yml up --build -d
