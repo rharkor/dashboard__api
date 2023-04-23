@@ -31,7 +31,9 @@
     "create:migration": "npm run typeorm:create-migration",
     "fixtures": "fixtures-ts-node-commonjs load ./src/database/fixtures/base.yml -d ./src/database/database.configuration.ts",
     "sql:delete": "ts-node ./src/database/scripts/delete-all",
-    "sql:insert-user": "ts-node ./src/database/scripts/insert-user-first-time",
+    "sql:insert-user-first-time": "ts-node ./src/database/scripts/insert-user-first-time",
+    "sql:insert-user": "ts-node ./src/database/scripts/insert-user",
+    "insert-user": "npm run sql:insert-user",
     "fixtures:clean": "npm run sql:delete && npm run fixtures"
   },
   "dependencies": {
@@ -56,6 +58,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.9.0",
+    "readline": "^1.3.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
