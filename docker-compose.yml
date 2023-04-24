@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    volumes:
+      - /home/ubuntu/yetix/dashboard/upload-prod:/usr/api/upload
     logging:
       driver: 'json-file'
       options:
