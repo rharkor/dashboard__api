@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ItemService, ItemsFiles } from './item.service';
 import { CreateItemDto } from './dtos/item-create.dto';
@@ -70,6 +71,16 @@ export class ItemController {
       },
       user,
     );
+  }
+
+  @Put('move/:id/:parentId')
+  move(
+    @Param('id') id: number,
+    @Param('parentId', ParseIntPipe) parentId: number,
+    @Request() req: RequestWithUser,
+  ) {
+    const { user } = req;
+    return this.itemService.moveItem(id, parentId, user);
   }
 
   @Put(':id')

@@ -265,4 +265,37 @@ export class ItemService {
     }
     return itemWithUser;
   }
+
+  async moveItem(id: number, parentId: number, user: User) {
+    const item = await this.itemRepository.findOne({
+      where: {
+        id,
+        user,
+      },
+    });
+    if (!item) {
+      throw new BadRequestException('Item not found');
+    }
+    if (parentId === -1) {
+      return this.itemRepository
+        .createQueryBuilder()
+        .update(Item)
+        .set({ parent: null })
+        .where('id = :id', { id })
+        .execute();
+    } else {
+      const parent = await this.itemRepository.findOne({
+        where: {
+          id: parentId,
+          user,
+          type: 'group',
+        },
+      });
+      if (!parent) {
+        throw new BadRequestException('Parent not found');
+      }
+      item.parent = parent;
+      return this.itemRepository.save(item);
+    }
+  }
 }

@@ -42,7 +42,7 @@ class Item {
 
   // Relation for group
   @ManyToOne(() => Item, (item) => item.children)
-  parent?: Item;
+  parent?: Item | null;
 
   @OneToMany(() => Item, (item) => item.parent)
   children?: Item[];
