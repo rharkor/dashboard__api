@@ -3,7 +3,7 @@ import { diskStorage } from 'multer';
 export const uploadConfiguration = {
   dest: './upload',
   limits: {
-    fileSize: 1024 * 1024 * 10, // 10MB
+    fileSize: 1024 * 1024 * 1024, // 100Go
     fieldNameSize: 100,
     fields: 100,
     files: 10,
