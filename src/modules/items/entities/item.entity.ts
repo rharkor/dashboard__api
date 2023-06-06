@@ -46,6 +46,12 @@ class Item {
 
   @OneToMany(() => Item, (item) => item.parent)
   children?: Item[];
+
+  @Column({
+    nullable: true,
+    select: false,
+  })
+  token?: string;
 }
 
 export default Item;

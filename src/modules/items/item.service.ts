@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import User from '../users/entities/user.entity';
 import { decrypt, encrypt } from 'src/utils/crypto-utils';
+import { v4 as uuid } from 'uuid';
 
 export type ItemsFiles = {
   logo?: Express.Multer.File[];
@@ -61,6 +62,27 @@ const verifyItem = (item: ItemWithFiles<CreateItemDto | UpdateItemDto>) => {
   }
 };
 
+const getAllChildrenParent = async (
+  item: Item,
+  itemRepository: Repository<Item>,
+) => {
+  const children = await itemRepository.find({
+    where: {
+      parent: {
+        id: item.id,
+      },
+    },
+    relations: ['parent', 'children'],
+  });
+  if (children.length > 0) {
+    for (const child of children) {
+      const sub = await getAllChildrenParent(child, itemRepository);
+      children.push(...sub);
+    }
+  }
+  return children;
+};
+
 @Injectable()
 export class ItemService {
   constructor(
@@ -75,7 +97,23 @@ export class ItemService {
         parent: IsNull(),
       },
       relations: ['parent', 'children'],
+      select: ['id', 'name', 'type', 'text', 'logo', 'file', 'token'],
     });
+  }
+
+  async findAllByToken(token: string) {
+    const root = await this.itemRepository.findOne({
+      where: {
+        token,
+      },
+      relations: ['parent', 'children'],
+    });
+
+    if (!root) {
+      throw new BadRequestException('Invalid token');
+    }
+
+    return getAllChildrenParent(root, this.itemRepository);
   }
 
   async findOneItem(id: number, user: User) {
@@ -85,7 +123,32 @@ export class ItemService {
         id,
       },
       relations: ['parent', 'children'],
+      select: ['id', 'name', 'type', 'text', 'logo', 'file', 'token'],
     });
+    if (res?.type === 'password' && res?.text) {
+      res.text = decrypt(res.text);
+    }
+    return res;
+  }
+
+  async findOneItemByToken(id: number, token: string) {
+    const root = await this.itemRepository.findOne({
+      where: {
+        token,
+      },
+    });
+    if (!root) {
+      throw new BadRequestException('Invalid token');
+    }
+    const rootChildren = await getAllChildrenParent(root, this.itemRepository);
+
+    const res = rootChildren.find(
+      (item) => item.id.toString() === id.toString(),
+    );
+    if (!res) {
+      throw new BadRequestException('Invalid id');
+    }
+
     if (res?.type === 'password' && res?.text) {
       res.text = decrypt(res.text);
     }
@@ -124,6 +187,44 @@ export class ItemService {
     return { ...res, parents: breadCrumb.reverse() };
   }
 
+  async findParentItemByToken(id: number, token: string) {
+    const root = await this.itemRepository.findOne({
+      where: {
+        token,
+      },
+      select: ['id', 'name'],
+    });
+    if (!root) {
+      throw new BadRequestException('Invalid token');
+    }
+    const rootChildren = await getAllChildrenParent(root, this.itemRepository);
+    const rootChildrenIds = rootChildren.map((item) => item.id.toString());
+    if (
+      !rootChildrenIds.includes(id.toString()) &&
+      root.id.toString() !== id.toString()
+    ) {
+      throw new BadRequestException('Invalid id');
+    }
+    const res = await this.itemRepository.findOne({
+      where: {
+        id,
+      },
+      select: ['id', 'name'],
+      relations: ['parent'],
+    });
+    const breadCrumb = [];
+    if (res) {
+      breadCrumb.push(res);
+      let parent: Item | null = res;
+      while (parent?.parent) {
+        breadCrumb.push(parent.parent);
+        parent =
+          rootChildren.find((item) => item.id === parent?.parent?.id) || null;
+      }
+    }
+    return { id: res?.id, name: res?.name, parents: breadCrumb.reverse() };
+  }
+
   findByItem(id: number, user: User) {
     return this.itemRepository.find({
       where: {
@@ -136,15 +237,68 @@ export class ItemService {
     });
   }
 
+  async findByItemByToken(id: number, token: string) {
+    const root = await this.itemRepository.findOne({
+      where: {
+        token,
+      },
+    });
+    if (!root) {
+      throw new BadRequestException('Invalid token');
+    }
+    if (root.id.toString() !== id.toString()) {
+      const rootChildren = await getAllChildrenParent(
+        root,
+        this.itemRepository,
+      );
+      let parentAccess = false;
+      for (const child of rootChildren) {
+        if (child.id.toString() === id.toString()) {
+          parentAccess = true;
+          break;
+        }
+      }
+      if (!parentAccess) {
+        throw new BadRequestException('Invalid token');
+      }
+    }
+
+    const items = await this.itemRepository.find({
+      where: {
+        parent: {
+          id,
+        },
+      },
+      relations: ['parent', 'children'],
+    });
+    return items;
+  }
+
   create(createItemDto: ItemWithFiles<CreateItemDto>, user: User) {
     verifyItem(createItemDto);
     return this.itemRepository.save({
-      ...createItemDto,
       user,
       parent: createItemDto.parent
         ? JSON.parse(createItemDto.parent as unknown as string)
         : undefined,
+      file: createItemDto.file,
+      text: createItemDto.text,
+      name: createItemDto.name,
+      type: createItemDto.type,
+      logo: createItemDto.logo,
     });
+  }
+
+  generateToken(id: number, user: User) {
+    return this.itemRepository.update(
+      {
+        id,
+        user,
+      },
+      {
+        token: uuid(),
+      },
+    );
   }
 
   update(id: number, updateItemDto: ItemWithFiles<UpdateItemDto>, user: User) {
@@ -158,7 +312,13 @@ export class ItemService {
     if (!item) {
       throw new BadRequestException('Item not found');
     }
-    return this.itemRepository.update(id, updateItemDto);
+    return this.itemRepository.update(id, {
+      file: updateItemDto.file,
+      text: updateItemDto.text,
+      name: updateItemDto.name,
+      type: updateItemDto.type,
+      logo: updateItemDto.logo,
+    });
   }
 
   remove(id: number, user: User) {
@@ -215,6 +375,42 @@ export class ItemService {
       select: ['logo', 'file'],
     });
     const item = allItems.find((item) => {
+      if (item.logo) {
+        const filename = (item.logo as any)[0].filename;
+        if (filename === file) return true;
+      }
+      if (item.file) {
+        const filename = (item.file as any)[0].filename;
+        if (filename === file) return true;
+      }
+      return false;
+    });
+    if (!item) {
+      throw new BadRequestException('Item not found');
+    }
+    const itemWithUser = await this.itemRepository.findOne({
+      where: {
+        id: item.id,
+      },
+      relations: ['user'],
+    });
+    if (!itemWithUser) {
+      throw new BadRequestException('Item not found');
+    }
+    return itemWithUser;
+  }
+
+  async findOneByFileAndToken(file: string, token: string) {
+    const root = await this.itemRepository.findOne({
+      where: {
+        token,
+      },
+    });
+    if (!root) {
+      throw new BadRequestException('Invalid token');
+    }
+    const rootChildren = await getAllChildrenParent(root, this.itemRepository);
+    const item = rootChildren.find((item) => {
       if (item.logo) {
         const filename = (item.logo as any)[0].filename;
         if (filename === file) return true;

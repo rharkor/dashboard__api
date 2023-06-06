@@ -25,6 +25,13 @@ export class FileService {
     }
   }
 
+  async ensureHaveRightsByToken(file: string, token: string): Promise<void> {
+    const item = await this.itemService.findOneByFileAndToken(file, token);
+    if (!item) {
+      throw new ForbiddenException();
+    }
+  }
+
   async ensureIsLogo(file: string): Promise<void> {
     await this.itemService.findOneByLogo(file);
   }

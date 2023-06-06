@@ -10,6 +10,7 @@ import {
   UploadedFiles,
   Request,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ItemService, ItemsFiles } from './item.service';
 import { CreateItemDto } from './dtos/item-create.dto';
@@ -17,31 +18,52 @@ import { UpdateItemDto } from './dtos/item-update.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { uploadConfiguration } from 'src/utils/upload';
 import { RequestWithUser } from 'src/types';
+import { TokenAvailable } from 'src/meta/public.meta';
 
 @Controller('items')
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
   @Get()
-  findAll(@Request() req: RequestWithUser) {
+  @TokenAvailable()
+  findAll(@Request() req: RequestWithUser, @Query('token') token: string) {
+    if (token) return this.itemService.findAllByToken(token);
     const { user } = req;
     return this.itemService.findAll(user);
   }
 
   @Get('one/:id')
-  findOneItem(@Param('id') id: number, @Request() req: RequestWithUser) {
+  @TokenAvailable()
+  findOneItem(
+    @Param('id') id: number,
+    @Request() req: RequestWithUser,
+    @Query('token') token: string,
+  ) {
+    if (token) return this.itemService.findOneItemByToken(id, token);
     const { user } = req;
     return this.itemService.findOneItem(id, user);
   }
 
   @Get('parent/:id')
-  findParentItem(@Param('id') id: number, @Request() req: RequestWithUser) {
+  @TokenAvailable()
+  findParentItem(
+    @Param('id') id: number,
+    @Request() req: RequestWithUser,
+    @Query('token') token: string,
+  ) {
+    if (token) return this.itemService.findParentItemByToken(id, token);
     const { user } = req;
     return this.itemService.findParentItem(id, user);
   }
 
   @Get(':id')
-  findByItem(@Param('id') id: number, @Request() req: RequestWithUser) {
+  @TokenAvailable()
+  findByItem(
+    @Param('id') id: number,
+    @Request() req: RequestWithUser,
+    @Query('token') token: string,
+  ) {
+    if (token) return this.itemService.findByItemByToken(id, token);
     const { user } = req;
     return this.itemService.findByItem(id, user);
   }
@@ -71,6 +93,12 @@ export class ItemController {
       },
       user,
     );
+  }
+
+  @Post('generate-token/:id')
+  generateToken(@Param('id') id: number, @Request() req: RequestWithUser) {
+    const { user } = req;
+    return this.itemService.generateToken(id, user);
   }
 
   @Put('move/:id/:parentId')

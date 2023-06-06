@@ -40,7 +40,23 @@ GET {{ itemsUrl }}
 Authorization: Bearer {{ authToken }}
 
 ### Get item by id
-GET {{itemsUrl}}11
+GET {{itemsUrl}}38
+Authorization: Bearer {{ authToken }}
+
+### Get item by token
+GET {{itemsUrl}}31?token=002f9116-7f92-4a3d-9929-c277b4afc23f
+
+### Get parents of item by id
+GET {{itemsUrl}}parent/36
+Authorization: Bearer {{ authToken }}
+
+### Get parents of item by token
+GET {{itemsUrl}}parent/36?token=002f9116-7f92-4a3d-9929-c277b4afc23f
+
+
+
+### Generate link
+POST {{itemsUrl}}generate-token/31
 Authorization: Bearer {{ authToken }}
 
 ### Delete item by id
