@@ -37,7 +37,7 @@
     "fixtures:clean": "npm run sql:delete && npm run fixtures"
   },
   "dependencies": {
-    "@backhealth/nest-sdk": "^1.1.7",
+    "@backhealth/nest-sdk": "^1.1.10",
     "@backhealth/node-sdk": "^1.0.5",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
