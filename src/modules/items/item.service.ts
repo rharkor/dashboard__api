@@ -234,6 +234,7 @@ export class ItemService {
         },
       },
       relations: ['parent', 'children'],
+      select: ['id', 'name', 'type', 'text', 'logo', 'file', 'token'],
     });
   }
 
